@@ -958,7 +958,7 @@ class PosOrder(models.Model):
                 existing_draft_order = self.env['pos.order'].search(['&', ('id', '=', order['data']['server_id']), ('state', '=', 'draft')], limit=1)
 
                 # if there is no draft order, skip processing this order
-                if not existing_draft_order:
+                if not existing_draft_order and draft:
                     continue
 
             if not existing_draft_order:
@@ -1585,6 +1585,11 @@ class PosOrderLine(models.Model):
                 }
             )
         return base_line_vals_list
+
+    def _get_discount_amount(self):
+        self.ensure_one()
+        original_price = self.tax_ids.compute_all(self.price_unit, self.currency_id, self.qty, product=self.product_id, partner=self.order_id.partner_id)['total_included']
+        return original_price - self.price_subtotal_incl
 
 
 class PosOrderLineLot(models.Model):
